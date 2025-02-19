@@ -1,0 +1,11 @@
+axes.titlesize : 30
+axes.labelsize : 25
+lines.linewidth : 3
+lines.markersize : 20
+xtick.labelsize : 20
+ytick.labelsize : 20
+legend.fontsize : 20
+legend.title_fontsize: 20
+pdf.fonttype: 42
+ps.fonttype: 42
+font.family: Futura

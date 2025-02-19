@@ -1,0 +1,11 @@
+axes.titlesize : 10
+axes.labelsize : 10
+lines.linewidth : 1
+lines.markersize : 10
+xtick.labelsize : 8
+ytick.labelsize : 8
+legend.fontsize : 8
+legend.title_fontsize: 10
+pdf.fonttype: 42
+ps.fonttype: 42
+font.family: Arial
