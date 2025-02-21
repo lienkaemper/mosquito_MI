@@ -1,15 +1,5 @@
 ## Standard libraries
-import sys
-import os
-import math
 import numpy as np
-import time
-import pandas  as pd 
-import torch
-torch.manual_seed(1) # Setting the seed
-torch.device("mps") 
-from tqdm.notebook import tqdm
-import sys
 
 ## Imports for plotting
 import matplotlib.pyplot as plt
@@ -20,7 +10,7 @@ from matplotlib.colors import TwoSlopeNorm
 import seaborn as sns
 
 
-from src.compute_mi import gauss_info, gauss_info_sensing
+from src.compute_mi import gauss_info_sensing
 
 npoints = 200
 w_min = 0.001
@@ -72,7 +62,7 @@ axd["C"].plot(a1s, mi_80, label = "\eta = {}".format(w), color = "black",  lines
 axd["B"].set_xlabel("Receptor 1 expression")
 axd["B"].set_ylabel("Mutual information")
 axd["B"].set_title("Weak correlation")
-#axd["B"].set_ylim(.6, 1.25)
+
 axd["B"].sharex(axd["C"])
 axd['B'].set_box_aspect(1)
 

@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 
 plt.style.use('paper_style.mplstyle')
 
-from src.compute_mi import gauss_info, gauss_info_sensing
 fig, axs = plt.subplots(1,3, figsize =(4,1.33), sharex = True, sharey= True)
 
 npoints = 200

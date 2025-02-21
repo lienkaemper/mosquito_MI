@@ -1,23 +1,13 @@
 ## Standard libraries
-import sys
-import os
-import math
 import numpy as np
-import time
-import pandas  as pd 
-import torch
-torch.manual_seed(1) # Setting the seed
-torch.device("mps") 
-from tqdm.notebook import tqdm
-import sys
 
 ## Imports for plotting
 import matplotlib.pyplot as plt
-from matplotlib.colors import to_rgba, LogNorm,TwoSlopeNorm
+from matplotlib.colors import TwoSlopeNorm
 import seaborn as sns
 plt.style.use('paper_style.mplstyle')
 
-from src.compute_mi import gauss_info, gauss_info_sensing
+from src.compute_mi import gauss_info_sensing, calculate_roots, coexp_slope
 
 
 npoints = 200
@@ -28,24 +18,6 @@ m_max = 1
 
 min_ratio = .99
 max_ratio = 1.25
-
-#-----------------------------------------------------------------------------------------------------------------#
-#Unequal variance 
-
-def calculate_roots(sigma1, sigma2, rho, e, n):
-    AA = e * (sigma2**2 - sigma1**2)
-    BB = e * (sigma1**2 - 2 * rho * sigma1 * sigma2 - sigma2**2) + n * (sigma1**2 - 2 * rho * sigma1 * sigma2 +sigma2**2)
-    CC = e*sigma1*sigma2*rho + n * rho *sigma1 * sigma2 -n * sigma2**2
-
-    discriminant = np.sqrt(BB**2 - 4 * AA * CC)
-
-    root1 = (-BB + discriminant) / (2 * AA)
-    root2 = (-BB - discriminant) / (2 * AA)
-
-    return root1, root2
-
-def coexp_slope(sigma1, sigma2, rho):
-    return (sigma2/sigma1-  rho)/ rho
 
 
 

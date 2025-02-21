@@ -10,10 +10,9 @@ from mpl_toolkits.mplot3d import proj3d
 import torch
 from tqdm import tqdm
 
-from src.optimize_mi import  maximize_mi_new
+from src.optimize_mi import maximize_mi
 
-from src.compute_mi import opt_coexp
-from src.plotting_functions import abline, gaussian 
+
 
 plt.style.use('paper_style.mplstyle')
 
@@ -77,7 +76,7 @@ if dimension == 3:
     mu = 7
     axlen = 24
 
-    x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+    x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
     A = x.detach().numpy()
     t = np.linspace(-50, 50).reshape(50,1)
     pts = t @ A
@@ -87,7 +86,7 @@ if dimension == 3:
     ax3d.plot(pts[:, neuron_ids[0]]+mu, pts[:, neuron_ids[1]]+mu,  pts[:, neuron_ids[2]]+mu,  color = "r", linewidth=1.5, zorder = 0)
 
 
-    x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = 0, neur_noise = 1, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+    x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = 0, neur_noise = 1, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
     A = x.detach().numpy()
     t = np.linspace(-top_var, top_var).reshape(50,1)
     pts = t @ A
@@ -115,7 +114,7 @@ if dimension == 2:
     mu = 0
     axlen = 24
 
-    x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+    x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
     A = x.detach().numpy()
     t = np.linspace(-50, 50).reshape(50,1)
     pts = t @ A
@@ -125,7 +124,7 @@ if dimension == 2:
     ax2d.plot(pts[:, neuron_ids[0]]+mu, pts[:, neuron_ids[1]]+mu,    color = "r", linewidth=1.5)
 
 
-    x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = 0, neur_noise = 1, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+    x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = 0, neur_noise = 1, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
     A = x.detach().numpy()
     t = np.linspace(-top_var, top_var).reshape(50,1)
     pts = t @ A
@@ -137,12 +136,7 @@ if dimension == 2:
 
 
     ax2d.scatter(X[:, neuron_ids[0]]+mu, X[:, neuron_ids[1]]+mu,  color = 'k' , alpha = .2, linewidth = 0)
-    # ax2d.plot(xs=[0, 0], ys=[0, 0], zs=[0, axlen], color='k', linewidth=1)
-    # ax2d.plot(xs=[0, axlen], ys=[0, 0], zs=[0, 0], color='k', linewidth=1)
-    # ax2d.plot(xs=[0, 0], ys=[0, axlen], zs=[0, 0], color='k', linewidth=1)
-    # ax2d.scatter(xs = [10, 0, 0, 10/3], ys = [0, 10, 0, 10/3], zs = [0,0,10, 10/3], color = 'k', marker = "*", alpha = 1 )
 
-    #plt.axis('off')
     ax2d.set_xlim(-12, 12)
     ax2d.set_ylim(-12, 12)
     sns.despine()
@@ -155,7 +149,7 @@ ax = fig.add_subplot(111)
 mu = 7
 axlen = 24
 
-x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0.5, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = 1, neur_noise = 0.5, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
 A = x.detach().numpy()
 t = np.linspace(-1.5*top_var, 1.5*top_var).reshape(50,1)
 pts = t @ A
@@ -219,7 +213,7 @@ with tqdm(total = n_e*n_s * trials) as pbar:
         for i, eta in enumerate(etas):
             for j, sigma in enumerate(sigmas):
                 if max(eta,sigma) > 0:
-                    x, gradients, values ,xs =maximize_mi_new(receptor_cov_t, noise_cov_t, env_noise = eta, neur_noise = sigma, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
+                    x, gradients, values ,xs =maximize_mi(receptor_cov_t, noise_cov_t, env_noise = eta, neur_noise = sigma, m = 1, steps = opt_steps, rate = .1, grad_noise = .05, grad_tol = 0)
                     A = x.detach().numpy()
                     A = A[np.argmax(A, axis = 1).argsort(), :]
                     MI_curves[trial, i, j, :] = values
@@ -242,7 +236,6 @@ print(df)
 fig, axs = plt.subplots(1,2, figsize = (4,2))
 sns.lineplot(data = df, x  = "environmental noise variance", y = "pc alignment", hue = "neural noise variance", ax = axs[0])
 sns.lineplot(data = df, x  = "environmental noise variance", y = "response gain", hue = "neural noise variance", ax = axs[1])
-#sns.lineplot(data = df, x  = "environmental noise variance", y = "response signal variance", hue = "neural noise variance", ax = axs[2])
 sns.despine()
 plt.savefig("../results/plots/perceptual_subspaces/tradeoff.pdf")
 plt.show()
@@ -251,9 +244,3 @@ plt.show()
 
 
 
-
-# fig = plt.figure()
-# ax = plt.axes(projection='3d', computed_zorder=False)
-# ax.view_init(elev=30, azim=-75, roll=0)
-# ax.scatter3D(X[:, neuron_ids[0]], X[:, neuron_ids[1]], X[:, neuron_ids[2]], zorder = 0, color = "black" )
-# ax.plot(pts[:, neuron_ids[0]], pts[:, neuron_ids[1]], pts[:, neuron_ids[2]], zorder = 0, color = "blue" )
