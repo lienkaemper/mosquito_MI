@@ -1,16 +1,13 @@
 ## Standard libraries
-import sys
-import os
-import math
+
 import numpy as np
-import time
 import pandas  as pd 
 import torch
 import seaborn as sns
 torch.manual_seed(1) # Setting the seed
 torch.device("mps") 
 from tqdm.notebook import tqdm
-import sys
+
 from src.gen_cov_mats import cov_to_cor
 from src.clustering import order_cor_matrix
 from scipy import stats
