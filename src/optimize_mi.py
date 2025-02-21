@@ -18,6 +18,16 @@ device = 'mps' if torch.cuda.is_available() else 'cpu'
 
 
 def project_to_simplex(x):
+  """
+  Projects a given vector x onto the probability simplex.
+  The probability simplex is defined as the set of vectors that are non-negative and sum to 1.
+  This function ensures that the resulting vector lies within this simplex.
+  Args:
+    x (torch.Tensor): A 1-dimensional tensor representing the input vector.
+  Returns:
+    torch.Tensor: A tensor of the same shape as x, projected onto the probability simplex.
+  """
+
   n = len(x)
   y, ind = torch.sort(x)
   t_last = 0
@@ -30,22 +40,19 @@ def project_to_simplex(x):
   return x - t_last
 
 def project_to_simplex_mat(A):
+  """
+  Projects each row of the input matrix A onto the probability simplex.
+  Args:
+    A (torch.Tensor): A 2D tensor of shape (m, n) where each row is a vector to be projected.
+  Returns:
+    torch.Tensor: A 2D tensor of the same shape as A, where each row has been projected onto the probability simplex.
+  """
+
   m, n = A.shape
   result = torch.zeros(m,n)
   for i in range(m):
     result[i,:] = project_to_simplex(A[i,:])
   return result
-
-def simplex_sample(m, n):
-  A = torch.zeros((m,n))
-  for i in range(m):
-    nums = torch.zeros(n+1)
-    nums[1:n] = torch.rand(n-1)
-    nums[n] = 1
-    nums,_ = torch.sort(nums)
-    A[i, :] = torch.diff(nums)
-  return A
-
 
   
 def projected_grad_asc(f, proj, x0, steps = 100,  rate = 0.001, grad_noise = 0.001, noise_decay = 0.9, grad_tol = .001):
@@ -133,7 +140,8 @@ def mi_loss_new(stim_cov, noise_cov, sigma_n, sigma_e):
 
 
 def mi_loss_np(stim_cov, noise_cov, sigma_n, sigma_e):
-  """ Compure the mutual inforation loss
+  """ Compure the mutual inforation loss, assuming numpy arrays
+  This is a numpy version of the mi_loss function.
 
   Arguments:
 
@@ -157,6 +165,16 @@ def mi_loss_np(stim_cov, noise_cov, sigma_n, sigma_e):
 
 
 def mse_loss(S, m, n, s_w, s_m):
+  """ Compute the mean squared error loss
+
+   Arguments:
+  n -- numer of odorants
+  m -- number of neurons
+  s_w -- variance of environmental noise
+  s_m -- variance of neural noise
+  S -- sensing matrix (default is identity)
+  Computes the mean squared error loss between the estimated odor concentrations  and the signal odor concentration vectors assuming optimal linear decoding
+  """
   def f(A):
     S_xy = S @ (A.T)
     S_yy = A@(S + s_w*torch.eye(n))@(A.T) + s_m*torch.eye(m) 
@@ -166,19 +184,25 @@ def mse_loss(S, m, n, s_w, s_m):
 
 
 
-def maximize_mi(C_xx ,  s_w=.1,  s_m = .1, m = None, S = None,  steps = 100,rate = 0.1, grad_noise = 0.1,  noise_decay = 0.99):
-  n = C_xx.shape[0]
-  if m is None:
-    m = n
-  if S is None:
-      S = torch.eye(n)
-  r = S.shape[0]
-  f = mi_loss(C_xx , m, n, s_w, s_m, S = S)
-  proj = project_to_simplex_mat
-  x0 = torch.ones((m,r))/r + 0.1*torch.randn(m,r)
-  return projected_grad_asc(f, proj, x0, steps, rate, grad_noise, noise_decay)
+def maximize_mi(stim_cov, noise_cov,  env_noise = .1,  neur_noise = .1, m = None, steps = 100,rate = 0.1, grad_noise = 0.1,  noise_decay = 0.99, grad_tol = .001):
+  def maximize_mi(stim_cov, noise_cov, env_noise=0.1, neur_noise=0.1, m=None, steps=100, rate=0.1, grad_noise=0.1, noise_decay=0.99, grad_tol=0.001):
+    """
+    Maximizes mutual information (MI) between stimuli and neural responses using projected gradient ascent.
+    Parameters:
+    stim_cov (torch.Tensor): Covariance matrix of the stimuli.
+    noise_cov (torch.Tensor): Covariance matrix of the noise.
+    env_noise (float, optional): Environmental noise level. Default is 0.1.
+    neur_noise (float, optional): Neural noise level. Default is 0.1.
+    m (int, optional): Number of neurons. If None, defaults to the number of receptors
+    steps (int, optional): Number of gradient ascent steps. Default is 100.
+    rate (float, optional): Learning rate for gradient ascent. Default is 0.1.
+    grad_noise (float, optional): Initial gradient noise level. Default is 0.1.
+    noise_decay (float, optional): Decay rate for gradient noise. Default is 0.99.
+    grad_tol (float, optional): Tolerance for gradient norm to determine convergence. Default is 0.001.
+    Returns:
+    torch.Tensor: Optimized projection matrix that maximizes mutual information.
+    """
 
-def maximize_mi_new(stim_cov, noise_cov,  env_noise = .1,  neur_noise = .1, m = None, steps = 100,rate = 0.1, grad_noise = 0.1,  noise_decay = 0.99, grad_tol = .001):
   n = stim_cov.shape[0]
   if m is None:
     m = n
@@ -189,6 +213,23 @@ def maximize_mi_new(stim_cov, noise_cov,  env_noise = .1,  neur_noise = .1, m = 
   return projected_grad_asc(f, proj, x0, steps, rate, grad_noise, noise_decay, grad_tol = grad_tol)
 
 def minimize_mse(S,  s_w=.1,  s_m = .1, m = None,  steps = 100,rate = 0.1, grad_noise = 0.1,  noise_decay = 0.99, grad_tol = .001):
+  def minimize_mse(S, s_w=.1, s_m=.1, m=None, steps=100, rate=0.1, grad_noise=0.1, noise_decay=0.99, grad_tol=.001):
+    """
+    Minimize the mean squared error (MSE) using projected gradient ascent.
+    Parameters:
+    S (torch.Tensor): Input tensor of shape (n, ...).
+    s_w (float, optional): Weight scaling factor. Default is 0.1.
+    s_m (float, optional): Mean scaling factor. Default is 0.1.
+    m (int, optional): Number of projections. If None, defaults to the number of rows in S. Default is None.
+    steps (int, optional): Number of gradient ascent steps. Default is 100.
+    rate (float, optional): Learning rate for gradient ascent. Default is 0.1.
+    grad_noise (float, optional): Initial gradient noise. Default is 0.1.
+    noise_decay (float, optional): Decay rate for gradient noise. Default is 0.99.
+    grad_tol (float, optional): Tolerance for gradient norm to determine convergence. Default is 0.001.
+    Returns:
+    torch.Tensor: The optimized projection matrix.
+    """
+
   n = S.shape[0]
   if m is None:
     m = n
